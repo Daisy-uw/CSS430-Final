@@ -1,13 +1,13 @@
-
+import java.util.Vector;
 public class FileTable {
-// File Structure Table
+	// File Structure Table
 
-    private Vector<FileTableEntry> table;// the entity of File Structure Table
-    private Directory dir;         // the root directory
+    private Vector<FileTableEntry> table;	// the entity of File Structure Table
+    private Directory dir;         		// the root directory
     
-    public FileTable ( Directory directory ) {// a default constructor
-	table = new Vector<FileTableEntry>( );// instantiate a file table
-	dir = directory;                      // instantiate the root directory
+    public FileTable ( Directory directory ) {	// a default constructor
+	table = new Vector<FileTableEntry>( );	// instantiate a file table
+	dir = directory;                     	// instantiate the root directory
     }
 
 	// you implement
@@ -36,5 +36,8 @@ public class FileTable {
     public synchronized boolean fempty( ) {
 	return table.isEmpty( );             // return if table is empty
     }                                        // called before a format
-}
+    
+    public Vector<FileTableEntry> getEntries(){
+    	return this.table;
+    }
 }

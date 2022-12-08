@@ -58,6 +58,8 @@ public class Directory {
     public boolean ifree ( short iNumber ) {
 		// deallocates this inumber (inode number).
 		// the corresponding file will be deleted.
+	return false;
+
     }
 
     public short namei( String filename ) {

@@ -1,11 +1,11 @@
 public class FileSystem {
-    private SuperBlock superblock;
+    private Superblock superblock;
     private Directory directory;
     private FileTable filetable;
 
     public FileSystem( int diskBlocks ) {
         // create superblock, and format disk with 64 inodes in default
-        superblock = new SuperBlock( diskBlocks );
+        superblock = new Superblock( diskBlocks );
     
         // create directory, and register "/" in directory entry 0
         directory = new Directory( superblock.inodeBlocks );
@@ -54,8 +54,7 @@ public class FileSystem {
 
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
-
-    }
+	    }
 
     boolean close( FileTableEntry ftEnt ) {
         // filetable entry is freed

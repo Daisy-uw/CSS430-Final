@@ -5,8 +5,8 @@ public class Superblock {
     public int inodeBlocks;
     public int freeList;
 	
-	// you implement
-	public SuperBlock( int diskSize ) {
+    // you implement
+	public Superblock (int diskSize ) {
 		// read the superblock from disk	
 	}
 	
@@ -18,12 +18,12 @@ public class Superblock {
 		SysLib.int2bytes( freeList, superBlock, 8 );
 		SysLib.rawwrite( 0, superBlock );
 		SysLib.cerr( "Superblock synchronized\n" );
-    }
+    	}
 
-    void format( ) {
+    	void format( ) {
 		// default format with 64 inodes
 		format( defaultInodeBlocks );
-    }
+    	}
 	
 	// you implement
 	 void format( int files ) {

@@ -1,6 +1,6 @@
 
 public class FileTableEntry {
-	public int seekPtr;        //    a file seek pointer
+    public int seekPtr;        //    a file seek pointer
     public final Inode inode;  //    a reference to an inode
     public final short iNumber;//    this inode number
     public int count;          //    a count to maintain #threads sharing this

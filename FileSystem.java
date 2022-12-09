@@ -54,6 +54,7 @@ public class FileSystem {
 
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
+        // jacob line
 	    }
 
     boolean close( FileTableEntry ftEnt ) {

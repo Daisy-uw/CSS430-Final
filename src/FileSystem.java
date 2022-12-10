@@ -1,3 +1,5 @@
+import java.util.Vector;
+
 public class FileSystem {
     private Superblock superblock;
     private Directory directory;
@@ -37,8 +39,7 @@ public class FileSystem {
 
     boolean format( int files ) {
         // wait until all filetable entries are destructed
-        while ( filetable.fempty( ) == false )
-            ;
+        while ( filetable.fempty( ) == false );
     
         // format superblock, initialize inodes, and create a free list
         superblock.format( files );
@@ -54,8 +55,19 @@ public class FileSystem {
 
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
-        //just for compile problem, need change
-        return filetable.getEntries().get(0);
+        //check if Directory contains filename
+        int inumber = directory.namei(filename);
+        if(inumber == -1){
+            return null;
+        }
+        Vector<FileTableEntry> entries = filetable.getEntries();
+        for(int i = 0; i< entries.size(); i++){
+            FileTableEntry entry = entries.get(i);
+            if(inumber == entry.iNumber && mode == entry.mode){
+                return entry;
+            }
+        }
+        return null;
     }
 
     boolean close( FileTableEntry ftEnt ) {
@@ -72,7 +84,8 @@ public class FileSystem {
 	
 
     int fsize( FileTableEntry ftEnt ) {
-        // just for compile problem, need change
+        int inumber = ftEnt.iNumber;
+
         return 0;
 
     }

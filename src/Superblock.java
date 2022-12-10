@@ -8,12 +8,18 @@ public class Superblock {
     // you implement
 	public Superblock (int diskSize ) {
 		// read the superblock from disk
-		// what is diskSize mean here?
 		byte [] data = new byte[Disk.blockSize];
 		SysLib.rawread(0, data);
 		totalBlocks = SysLib.bytes2int(data, 0);
 		inodeBlocks = SysLib.bytes2int(data, 4);
 		freeList = SysLib.bytes2int(data, 8);
+
+		if(totalBlocks == diskSize && inodeBlocks >0 && freeList >=2){
+			return; // this is a valid super block
+		}else{
+			totalBlocks = diskSize;
+			format(defaultInodeBlocks);
+		}
 	}
 	
 	//  helper function
@@ -34,12 +40,15 @@ public class Superblock {
 	// you implement
 	 void format( int files ) {
 		// initialize the superblock
+		 // need to double check later
+		 inodeBlocks = files;
+		 freeList = 2;
 	 }
 	
 	// you implement
 	public int getFreeBlock( ) {
 		// get a new free block from the freelist
-		return this.freeList; //not sure
+		return this.freeList;
 	}
 	
 	// you implement

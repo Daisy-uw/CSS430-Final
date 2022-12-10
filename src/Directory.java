@@ -26,7 +26,6 @@ public class Directory {
 			fsizes[i] = SysLib.bytes2int(data, offset);
 		}
 		for(int i = 0; i < fnames.length; i++, offset += maxChars *2){
-            //how to copy?
 			fnames[i] = new char[fsizes[i]];
 			byte[] name = new byte[fsizes[i]];
 			System.arraycopy(data, offset, name, 0, fsizes[i]);
@@ -70,9 +69,12 @@ public class Directory {
 	// you implement
     public boolean ifree ( short iNumber ) {
 		// deallocates this inumber (inode number).
+		if(iNumber < 0 || iNumber >= fsizes.length)
+			return false;
 		// the corresponding file will be deleted.
-	return false;
-
+		fsizes[iNumber] = 0;
+		fnames[iNumber] = null;
+		return true;
     }
 
     public short namei( String filename ) {
@@ -87,6 +89,6 @@ public class Directory {
 		}
 		return -1;
     }
-	
-	
+	// Daisy is here	
+
 }

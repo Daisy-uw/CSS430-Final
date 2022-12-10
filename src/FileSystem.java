@@ -84,10 +84,11 @@ public class FileSystem {
 	
 
     int fsize( FileTableEntry ftEnt ) {
-        int inumber = ftEnt.iNumber;
-
-        return 0;
-
+        if (ftEnt == null || ftEnt.inode == null) {
+            return -1;
+        }
+        int size = ftEnt.inode.length;
+        return size;
     }
 
 
@@ -148,10 +149,25 @@ public class FileSystem {
                     " seekptr=" + ftEnt.seekPtr +
                     " whence=" + whence );
             */
-			
+            // set seekptr to beginning of file
+            if (whence == 0) {
+                ftEnt.seekPtr = 0;
+            }
+            // set seekptr to end of file
+            if (whence == 2) {
+                ftEnt.seekPtr = ftEnt.inode.length;
+            }
+            // apply offset to seekptr
+            ftEnt.seekPtr = ftEnt.seekPtr + offset;
+            // check if seekptr is out of range, set to end point
+            if (ftEnt.seekPtr < 0) {
+                ftEnt.seekPtr = 0;
+            }
+            if (ftEnt.seekPtr > ftEnt.inode.length) {
+                ftEnt.seekPtr = ftEnt.inode.length;
+            }
 		}
-        // just for compile problem, need change
-        return 0;
+        return ftEnt.seekPtr;
     }
 
 }

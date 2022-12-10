@@ -52,6 +52,7 @@ public class Superblock {
 	}
 	
 	// you implement
+	// WHAT IS THIS METHOD?? READ DOCUMENTATION TO UNDERSTAND OR ASK CONNOR/PARSONS
 	public boolean returnBlock( int oldBlockNumber ) {
 	// return this former block
 		return true;

@@ -54,8 +54,9 @@ public class FileSystem {
 
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
-        // jacob line
-	    }
+        //just for compile problem, need change
+        return filetable.getEntries().get(0);
+    }
 
     boolean close( FileTableEntry ftEnt ) {
         // filetable entry is freed
@@ -71,6 +72,8 @@ public class FileSystem {
 	
 
     int fsize( FileTableEntry ftEnt ) {
+        // just for compile problem, need change
+        return 0;
 
     }
 
@@ -87,6 +90,8 @@ public class FileSystem {
 
 
         }
+        //just for compile problem, need change
+        return 0;
     }
 
     int write( FileTableEntry ftEnt, byte[] buffer ) {
@@ -100,6 +105,8 @@ public class FileSystem {
     
 
         }
+        //just for compile problem, need change
+        return 0;
     }
 
     private boolean deallocAllBlocks( FileTableEntry ftEnt ) {
@@ -130,6 +137,8 @@ public class FileSystem {
             */
 			
 		}
-
+        // just for compile problem, need change
+        return 0;
     }
+
 }

@@ -12,6 +12,8 @@ public class FileTable {
 
 	// you implement
 	public synchronized FileTableEntry falloc( String fname, String mode ) {
+		// just for compile problem, need change
+		return table.get(0);
 	}
 
     public synchronized boolean ffree( FileTableEntry e ) {
@@ -34,7 +36,7 @@ public class FileTable {
     }
 
     public synchronized boolean fempty( ) {
-	return table.isEmpty( );             // return if table is empty
+		return table.isEmpty( );             // return if table is empty
     }                                        // called before a format
     
     public Vector<FileTableEntry> getEntries(){

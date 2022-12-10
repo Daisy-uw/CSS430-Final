@@ -11,7 +11,7 @@ public class Inode {
     public short count;                // # file-table entries pointing to this
     public short flag;       // 0 = unused, 1 = used(r), 2 = used(!r), 
                              // 3=unused(wreg), 4=used(r,wreq), 5= used(!r,wreg)
-    public short direct[] = new short[directSize]; // directo pointers
+    public short direct[] = new short[directSize]; // direct pointers
     public short indirect;                         // an indirect pointer
 
     Inode ( ) {                        // a default constructor
@@ -55,7 +55,23 @@ public class Inode {
 
  	
 	// saving this inode to disk
-	void toDisk( short iNumber ) {     
+	void toDisk( short iNumber ) {
 		// you implement
+		int blkNumber = 1 + iNumber / 16;
+		byte[] data = new byte[Disk.blockSize];
+		int offset = ( iNumber % 16 ) * iNodeSize;
+		SysLib.int2bytes(length, data, offset); //save the length in data
+		offset += 4;
+		SysLib.short2bytes(count, data, offset); //save the count in data
+		offset += 2;
+		SysLib.short2bytes(flag, data, offset); // save the flag in data
+		offset += 2;
+		for(int i = 0; i < directSize; i++){
+			SysLib.short2bytes(direct[i], data, offset); //save the direct element in data
+			offset += 2;
+		}
+		SysLib.short2bytes(indirect, data, offset); // save the indirect in data
+		SysLib.rawwrite(blkNumber, data); // raw write data to the disk
+
 	}
 }

@@ -7,7 +7,13 @@ public class Superblock {
 	
     // you implement
 	public Superblock (int diskSize ) {
-		// read the superblock from disk	
+		// read the superblock from disk
+		// what is diskSize mean here?
+		byte [] data = new byte[Disk.blockSize];
+		SysLib.rawread(0, data);
+		totalBlocks = SysLib.bytes2int(data, 0);
+		inodeBlocks = SysLib.bytes2int(data, 4);
+		freeList = SysLib.bytes2int(data, 8);
 	}
 	
 	//  helper function
@@ -33,11 +39,13 @@ public class Superblock {
 	// you implement
 	public int getFreeBlock( ) {
 		// get a new free block from the freelist
+		return this.freeList; //not sure
 	}
 	
 	// you implement
 	public boolean returnBlock( int oldBlockNumber ) {
 	// return this former block
+		return true;
 	}
 	
 }

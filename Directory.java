@@ -21,6 +21,19 @@ public class Directory {
 	public void bytes2directory( byte data[] ) {
 		// assumes data[] contains directory information retrieved from disk
         // initialize the directory fsizes[] and fnames[] with this data[]
+		int offset = 0;
+		for(int i = 0; i< fsizes.length; i++, offset+=4){
+			fsizes[i] = SysLib.bytes2int(data, offset);
+		}
+		for(int i = 0; i < fnames.length; i++, offset += maxChars *2){
+            //how to copy?
+			fnames[i] = new char[fsizes[i]];
+			byte[] name = new byte[fsizes[i]];
+			System.arraycopy(data, offset, name, 0, fsizes[i]);
+			for(int j = 0; j < fsizes[i]; j++){
+				fnames[i][j] = (char) name[j];
+			}
+		}
 	}
 	
 	public byte[] directory2bytes( ) {
@@ -37,9 +50,9 @@ public class Directory {
 			System.arraycopy( bytes, 0, data, offset, bytes.length );
 		}
 		return data;
-		}
+	}
 
-		public short ialloc ( String filename ) {
+	public short ialloc ( String filename ) {
 		// filename is the name of a file to be created.
 		// allocates a new inode number for this filename.
 		short i;

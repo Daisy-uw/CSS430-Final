@@ -150,11 +150,11 @@ public class FileSystem {
                     " whence=" + whence );
             */
             // set seekptr to beginning of file
-            if (whence == 0) {
-                ftEnt.seekPtr = 0;
+            if (whence == SEEK_SET) {
+                ftEnt.seekPtr = SEEK_SET;
             }
             // set seekptr to end of file
-            if (whence == 2) {
+            if (whence == SEEK_END) {
                 ftEnt.seekPtr = ftEnt.inode.length;
             }
             // apply offset to seekptr

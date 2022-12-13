@@ -74,4 +74,8 @@ public class Inode {
 		SysLib.rawwrite(blkNumber, data); // raw write data to the disk
 
 	}
+
+	int findTargetBlock(int offset) {
+		return 0;
+	}
 }

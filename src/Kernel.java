@@ -3,6 +3,7 @@
 */
 import java.io.BufferedReader;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
@@ -55,6 +56,9 @@ public final static int ERROR = -1;
 private static Scheduler scheduler;
 private static Disk disk;
 private static Cache cache;
+
+// static filesystem variable created
+private static FileSystem filesystem;
 
 // Synchronized Queues
 private static SyncQueue waitQueue;  // for threads to wait for their child
@@ -198,17 +202,44 @@ case INTERRUPT_SOFTWARE: // System calls
     cache.flush( );
     return OK;
     case OPEN:    // to be implemented in project
-    return OK;
+        if ((myTcb = scheduler.getMyTcb()) != null) {
+            String[] stringargs = (String[])args;
+            return myTcb.getFd(filesystem.open(stringargs[0], stringargs[1]));
+        }
+        return ERROR;
     case CLOSE:   // to be implemented in project
-    return OK;
+        if ((myTcb = scheduler.getMyTcb()) != null) {
+            FileTableEntry ftEnt = myTcb.getFtEnt(param);
+            if (ftEnt == null || filesystem.close(ftEnt) == false) {
+                return ERROR;
+            }
+            if (myTcb.returnFd(param) != ftEnt) {
+                return ERROR;
+            }
+            return OK;
+        }
+        return ERROR;
     case SIZE:    // to be implemented in project
-    return OK;
+        if ((myTcb = scheduler.getMyTcb()) != null) {
+            FileTableEntry ftEnt = myTcb.getFtEnt(param);
+            if (ftEnt != null) {
+                return filesystem.fsize(ftEnt);
+            }
+        }
+        return ERROR;
     case SEEK:    // to be implemented in project
-    return OK;
+        if ((myTcb = scheduler.getMyTcb()) != null) {
+            int[] seekargs = (int[])args;
+            FileTableEntry ftEnt = myTcb.getFtEnt(param);
+            if (ftEnt != null) {
+                return filesystem.seek(ftEnt, seekargs[0], seekargs[1]);
+            }
+        }
+        return ERROR;
     case FORMAT:  // to be implemented in project
-    return OK;
+        return (filesystem.format(param) == true) ? OK : ERROR;
     case DELETE:  // to be implemented in project
-    return OK;
+        return (filesystem.delete((String)args) == true) ? OK : ERROR;
     }
     return ERROR;
 case INTERRUPT_DISK: // Disk interrupts

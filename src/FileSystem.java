@@ -93,6 +93,9 @@ public class FileSystem {
 
 
     int read( FileTableEntry ftEnt, byte[] buffer ) {
+        if (ftEnt == null) {
+            return -1;
+        }
         if ( ftEnt.mode == "w" || ftEnt.mode == "a" )
             return -1;
     
@@ -109,6 +112,9 @@ public class FileSystem {
     }
 
     int write( FileTableEntry ftEnt, byte[] buffer ) {
+        if (ftEnt == null) {
+            // make new filetableentry
+        }
         // at this point, ftEnt is only the one to modify the inode
         if ( ftEnt.mode == "r" )
             return -1;
@@ -116,6 +122,13 @@ public class FileSystem {
         synchronized ( ftEnt ) {
             int offset   = 0;              // buffer offset
             int left     = buffer.length;  // the remaining data of this buffer
+
+            if (ftEnt.mode == "a") {
+                // append buffer
+            }
+            else {
+                // write to file
+            }
     
 
         }

@@ -23,6 +23,8 @@ public class FileSystem {
             read( dirEnt, dirData );
             directory.bytes2directory( dirData );
         }
+        if(dirEnt == null)
+            SysLib.cout("DirEnt is null");
         close( dirEnt );
     }
 
@@ -39,11 +41,12 @@ public class FileSystem {
 
     boolean format( int files ) {
         // wait until all filetable entries are destructed
+
         while ( filetable.fempty( ) == false );
-    
+
         // format superblock, initialize inodes, and create a free list
         superblock.format( files );
-    
+
         // create directory, and register "/" in directory entry 0
         directory = new Directory( superblock.inodeBlocks );
     
@@ -58,15 +61,18 @@ public class FileSystem {
         //check if Directory contains filename
         int inumber = directory.namei(filename);
         if(inumber == -1){
+            SysLib.cout("Cannot find the file name " + filename+ "\n");
             return null;
         }
         Vector<FileTableEntry> entries = filetable.getEntries();
+        SysLib.cout("entries size = " + entries.size());
         for(int i = 0; i< entries.size(); i++){
             FileTableEntry entry = entries.get(i);
-            if(inumber == entry.iNumber && mode == entry.mode){
+            if(inumber == entry.iNumber && mode.equals(entry.mode)){
                 return entry;
             }
         }
+        SysLib.cout("Cannot find an entry " + inumber + " mode = "+ mode+ "\n");
         return null;
     }
 

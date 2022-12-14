@@ -82,6 +82,7 @@ public class FileSystem {
         if (ftEnt == null || ftEnt.inode == null) {
             return -1;
         }
+        // return the size of the file through fileentry and inode
         int size = ftEnt.inode.length;
         return size;
     }

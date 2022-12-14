@@ -156,42 +156,57 @@ case INTERRUPT_SOFTWARE: // System calls
         return OK;
     case READ:
         switch ( param ) {
-        case STDIN:
-            try {
-            String s = input.readLine(); // read a keyboard input
-            if ( s == null ) {
+            case STDIN:
+                try {
+                String s = input.readLine(); // read a keyboard input
+                if ( s == null ) {
+                    return ERROR;
+                }
+                // prepare a read buffer
+                StringBuffer buf = ( StringBuffer )args;
+
+                // append the keyboard intput to this read buffer
+                buf.append( s );
+
+                // return the number of chars read from keyboard
+                return s.length( );
+                } catch ( IOException e ) {
+                System.out.println( e );
                 return ERROR;
-            }
-            // prepare a read buffer
-            StringBuffer buf = ( StringBuffer )args;
-
-            // append the keyboard intput to this read buffer
-            buf.append( s );
-
-            // return the number of chars read from keyboard
-            return s.length( );
-            } catch ( IOException e ) {
-            System.out.println( e );
-            return ERROR;
-            }
-        case STDOUT:
-        case STDERR:
-                System.out.println("threadOS: caused read errors");
-            return ERROR;
+                }
+            case STDOUT:
+            case STDERR:
+                    System.out.println("threadOS: caused read errors");
+                return ERROR;
+            default:
+                if ((myTcb = scheduler.getMyTcb()) != null) {
+                    byte[] readargs = (byte[])args;
+                    FileTableEntry ftEnt = myTcb.getFtEnt(param);
+                    if (ftEnt != null) {
+                        return filesystem.read(ftEnt, readargs);
+                    }
+                }
         }
-        // return FileSystem.read( param, byte args[] );
         return ERROR;
     case WRITE:
         switch ( param ) {
-        case STDIN:
-                System.out.println("threadOS: cannot write to System.in");
-            return ERROR;
-        case STDOUT:
-            System.out.print( (String)args );
-            break;
-        case STDERR:
-            System.err.print( (String)args );
-            break;
+            case STDIN:
+                    System.out.println("threadOS: cannot write to System.in");
+                return ERROR;
+            case STDOUT:
+                System.out.print( (String)args );
+                break;
+            case STDERR:
+                System.err.print( (String)args );
+                break;
+            default:
+                if ((myTcb = scheduler.getMyTcb()) != null) {
+                    byte[] writeArgs = (byte[])args;
+                    FileTableEntry ftEnt = myTcb.getFtEnt(param);
+                    if (ftEnt != null) {
+                        return filesystem.write(ftEnt, writeArgs);
+                    }
+                }
         }
         return OK;
     case CREAD:   // to be implemented in assignment 4

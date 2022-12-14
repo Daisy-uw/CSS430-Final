@@ -34,7 +34,7 @@ public class FileSystem {
         byte[] dirData = directory.directory2bytes( );
         write( dirEnt, dirData );
         close( dirEnt );
-    
+
         // superblock synchronization
         superblock.sync( );
     }
@@ -55,28 +55,17 @@ public class FileSystem {
     
         return true;
     }
-    // this method should be implemeted in other way.
-    // it's not correct now
+    // you implement
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
         //check if Directory contains filename
-        int inumber = directory.namei(filename);
-        if(inumber == -1){
-            SysLib.cout("Cannot find the file name " + filename+ "\n");
-            if(mode.equals("r")){
+        FileTableEntry entry = filetable.falloc(filename, mode);
+        if(mode.equals("w")){
+            if(deallocAllBlocks(entry) == false){
                 return null;
             }
         }
-        Vector<FileTableEntry> entries = filetable.getEntries();
-        SysLib.cout("entries size = " + entries.size());
-        for(int i = 0; i< entries.size(); i++){
-            FileTableEntry entry = entries.get(i);
-            if(inumber == entry.iNumber && mode.equals(entry.mode)){
-                return entry;
-            }
-        }
-        SysLib.cout("Cannot find an entry " + inumber + " mode = "+ mode+ "\n");
-        return null;
+        return entry;
     }
 
     boolean close( FileTableEntry ftEnt ) {
@@ -89,9 +78,6 @@ public class FileSystem {
         }
         return filetable.ffree( ftEnt );
     }
-	
-	
-
     int fsize( FileTableEntry ftEnt ) {
         if (ftEnt == null || ftEnt.inode == null) {
             return -1;
@@ -113,16 +99,29 @@ public class FileSystem {
     
         synchronized ( ftEnt ) {
 			// repeat reading until no more data  or reaching EOF
-
-
+            while(ftEnt.seekPtr < ftEnt.inode.length){
+                int blockNumber = ftEnt.inode.findTargetBlock(superblock, ftEnt.seekPtr);
+                byte[] data = new byte[Disk.blockSize];
+                SysLib.rawread(blockNumber, data);
+                int index = ftEnt.seekPtr % Disk.blockSize;
+                for(; index < data.length; index++){
+                    buffer[offset] = data[index];
+                    offset++;
+                    ftEnt.seekPtr++;
+                    if(ftEnt.seekPtr == ftEnt.inode.length || offset == left){
+                        return offset;
+                    }
+                }
+            }
+            return offset;
         }
-        //just for compile problem, need change
-        return 0;
     }
 
     int write( FileTableEntry ftEnt, byte[] buffer ) {
         if (ftEnt == null) {
-            // make new filetableentry
+            // make new file table entry
+            SysLib.cout("Empty file table entry");
+            return -1;
         }
         // at this point, ftEnt is only the one to modify the inode
         if ( ftEnt.mode == "r" )
@@ -134,25 +133,82 @@ public class FileSystem {
 
             if (ftEnt.mode == "a") {
                 // append buffer
+                return append(ftEnt, 0, buffer);
             }
             else {
                 // write to file
+                // we have to deallocate the existing data
+
+                while(ftEnt.seekPtr < ftEnt.inode.length && offset < buffer.length){
+                    int currentBlock = ftEnt.seekPtr/Disk.blockSize;
+                    int currentIndex = ftEnt.seekPtr % Disk.blockSize;
+                    byte[] data = new byte[Disk.blockSize];
+                    SysLib.rawread(ftEnt.inode.getBlockID(superblock, currentBlock), data);
+                    while(ftEnt.seekPtr < ftEnt.inode.length &&
+                            currentIndex < Disk.blockSize &&
+                            offset < buffer.length){
+                        data[currentIndex] = buffer[offset];
+                        currentIndex++;
+                        offset++;
+                        ftEnt.seekPtr++;
+                    }
+                    SysLib.rawwrite(ftEnt.inode.getBlockID(superblock, currentBlock), data);
+                    if(offset == buffer.length){
+                        return offset;
+                    }
+                    if(ftEnt.seekPtr == ftEnt.inode.length){
+                        break;
+                    }
+                }
+                if(offset < buffer.length){
+                    return append(ftEnt, offset, buffer);
+                }
+                return offset;
             }
-    
+        }
+    }
+    private int append(FileTableEntry ftEnt, int offset, byte[] buffer){
+        int usedBlock = ftEnt.inode.length/Disk.blockSize;
+        int leftLength = ftEnt.inode.length % Disk.blockSize;
+        ftEnt.seekPtr = ftEnt.inode.length;
+        if(leftLength != 0){
+            int blockNumber = ftEnt.inode.getBlockID(superblock, usedBlock);
+            byte[] data = new byte[Disk.blockSize];
+            SysLib.rawread(blockNumber, data);
+            while(leftLength < Disk.blockSize && offset < buffer.length){
+                data[leftLength] = buffer[offset];
+                leftLength++;
+                offset++;
+                ftEnt.seekPtr++;
+                ftEnt.inode.length++;
+            }
+            SysLib.rawwrite(blockNumber, data);
+            usedBlock++;
+        }
+        while (offset < buffer.length){
+            byte[] data = new byte[Disk.blockSize];
+            int index = 0;
+            while(offset < buffer.length && index < data.length){
+                data[index] = buffer[offset];
+                index++;
+                offset ++;
+                ftEnt.inode.length++;
+                ftEnt.seekPtr++;
+            }
+            int freeBlock = superblock.getFreeBlock();
+            SysLib.rawwrite(freeBlock, data);
+            ftEnt.inode.setBlockID(superblock, usedBlock, (short)freeBlock);
+            usedBlock++;
 
         }
-        //just for compile problem, need change
-        return 0;
+        return offset;
     }
 
     private boolean deallocAllBlocks( FileTableEntry ftEnt ) {
-
+        ftEnt.inode.length = 0;
+        ftEnt.seekPtr = 0;
         return true;
     }
-
-	
-	
-	
     boolean delete( String filename ) {
         FileTableEntry ftEnt = open( filename, "w" );
         short iNumber = ftEnt.iNumber;
@@ -173,14 +229,16 @@ public class FileSystem {
             */
             // set seekptr to beginning of file
             if (whence == SEEK_SET) {
-                ftEnt.seekPtr = SEEK_SET;
+                ftEnt.seekPtr = offset;
             }
             // set seekptr to end of file
             if (whence == SEEK_END) {
-                ftEnt.seekPtr = ftEnt.inode.length;
+                ftEnt.seekPtr = ftEnt.inode.length + offset;
             }
-            // apply offset to seekptr
-            ftEnt.seekPtr = ftEnt.seekPtr + offset;
+            if(whence == SEEK_CUR){
+                ftEnt.seekPtr = ftEnt.seekPtr + offset;
+            }
+
             // check if seekptr is out of range, set to end point
             if (ftEnt.seekPtr < 0) {
                 ftEnt.seekPtr = 0;

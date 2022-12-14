@@ -64,7 +64,9 @@ public class Superblock {
 	// you implement
 	public int getFreeBlock( ) {
 		// get a new free block from the freelist
-		return this.freeList;
+		int res = this.freeList;
+		freeList++;
+		return res;
 	}
 	
 	// you implement

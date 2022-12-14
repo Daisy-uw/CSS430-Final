@@ -14,23 +14,18 @@ public class FileTable {
 	public synchronized FileTableEntry falloc( String fname, String mode ) {
 		int inumber = dir.namei(fname);
 		if(inumber == -1){
+			if(mode.equals("r")){
+				return null;
+			}
 			inumber = dir.ialloc(fname);
 			if(inumber == -1){
 				SysLib.cout("Cannot allocate " + fname + " with mode = " + mode );
 				throw new RuntimeException();
 			}
-		}else{
-			SysLib.cout("Found a record in directory with file name = " + fname);
-			for(int i = 0; i< table.size(); i++){
-				FileTableEntry entry = table.get(i);
-				if(entry.iNumber == inumber && entry.mode.equals(mode)){
-					return entry;
-				}
-			}
-			SysLib.cout("Cannot find an entry with file name = " + fname + " and mode = " + mode);
-			throw new RuntimeException();
 		}
 		Inode inode = new Inode((short)inumber);
+		inode.count++;
+		inode.toDisk((short)inumber);
 		FileTableEntry entry = new FileTableEntry(inode, (short) inumber, mode);
 		table.add(entry);
 		return entry;

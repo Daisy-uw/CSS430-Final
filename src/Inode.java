@@ -15,12 +15,12 @@ public class Inode {
     public short indirect;                         // an indirect pointer
 
     Inode ( ) {                        // a default constructor
-	length = 0;
-	count = 0;
-	flag = 1;
-	for ( int i = 0; i < directSize; i++ )
-	    direct[i] = -1;
-	indirect = -1;
+		length = 0;
+		count = 0;
+		flag = 1;
+		for ( int i = 0; i < directSize; i++ )
+			direct[i] = -1;
+		indirect = -1;
     }
 
 	// making inode from disk
@@ -75,7 +75,35 @@ public class Inode {
 
 	}
 
-	int findTargetBlock(int offset) {
-		return 0;
+	int findTargetBlock(Superblock superblock, int offset) {
+		int index = offset/Disk.blockSize;
+		return getBlockID(superblock, index);
+	}
+	int getBlockID (Superblock superblock, int index){
+		if(index >=0 && index < directSize){
+			return direct[index];
+		}
+		if(indirect == -1){
+			indirect = (short) superblock.getFreeBlock();
+		}
+		byte[] data = new byte[Disk.blockSize];
+		SysLib.rawread(indirect, data);
+		int offset = (index - directSize) * 2;
+		int ans = SysLib.bytes2short(data, offset);
+		return ans;
+	}
+	void setBlockID (Superblock superblock, int index, short blockNumber){
+		if(index >= 0 && index < directSize){
+			direct[index] = blockNumber;
+			return;
+		}
+		if(indirect == -1){
+			indirect = (short) superblock.getFreeBlock();
+		}
+		byte[] data = new byte[Disk.blockSize];
+		SysLib.rawread(indirect, data);
+		int offset = (index - directSize) *2;
+		SysLib.short2bytes(blockNumber, data, offset);
+		SysLib.rawwrite(indirect, data);
 	}
 }

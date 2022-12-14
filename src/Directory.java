@@ -73,7 +73,7 @@ public class Directory {
 			return false;
 		// the corresponding file will be deleted.
 		fsizes[iNumber] = 0;
-		fnames[iNumber] = null;
+		fnames[iNumber] = new char[maxChars];
 		return true;
     }
 

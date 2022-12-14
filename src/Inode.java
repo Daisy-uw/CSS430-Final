@@ -84,7 +84,7 @@ public class Inode {
 			return direct[index];
 		}
 		if(indirect == -1){
-			indirect = (short) superblock.getFreeBlock();
+			indirect = (short) superblock.getFreeBlock(); //allocate indirect
 		}
 		byte[] data = new byte[Disk.blockSize];
 		SysLib.rawread(indirect, data);
@@ -94,16 +94,16 @@ public class Inode {
 	}
 	void setBlockID (Superblock superblock, int index, short blockNumber){
 		if(index >= 0 && index < directSize){
-			direct[index] = blockNumber;
+			direct[index] = blockNumber; //set current block pointer to new block
 			return;
 		}
 		if(indirect == -1){
-			indirect = (short) superblock.getFreeBlock();
+			indirect = (short) superblock.getFreeBlock(); //allocate indirect
 		}
 		byte[] data = new byte[Disk.blockSize];
 		SysLib.rawread(indirect, data);
 		int offset = (index - directSize) *2;
-		SysLib.short2bytes(blockNumber, data, offset);
-		SysLib.rawwrite(indirect, data);
+		SysLib.short2bytes(blockNumber, data, offset); //overwrite data with offset
+		SysLib.rawwrite(indirect, data); //overwrite indirect with new data
 	}
 }

@@ -15,12 +15,10 @@ public class Superblock {
 		freeList = SysLib.bytes2int(data, 8);
 
 		if(totalBlocks == diskSize && inodeBlocks >0 && freeList >=2){
-			SysLib.cout("It's a valid superblock");
-			return;
+			return; // valid super block
 		}else{
 			totalBlocks = diskSize;
 			format(defaultInodeBlocks);
-			SysLib.cout("This is default super block");
 		}
 	}
 	

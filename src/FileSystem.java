@@ -100,19 +100,26 @@ public class FileSystem {
         synchronized ( ftEnt ) {
 			// repeat reading until no more data  or reaching EOF
             while(ftEnt.seekPtr < ftEnt.inode.length){
+                // find current block at seek pointer
                 int blockNumber = ftEnt.inode.findTargetBlock(superblock, ftEnt.seekPtr);
                 byte[] data = new byte[Disk.blockSize];
+
+                //copy data from current block
                 SysLib.rawread(blockNumber, data);
-                int index = ftEnt.seekPtr % Disk.blockSize;
+                int index = ftEnt.seekPtr % Disk.blockSize; // index of seek pointer in current block
+
+                //copy data from index to the end in data[] to buffer
                 for(; index < data.length; index++){
                     buffer[offset] = data[index];
                     offset++;
                     ftEnt.seekPtr++;
                     if(ftEnt.seekPtr == ftEnt.inode.length || offset == left){
+                        ftEnt.inode.toDisk(ftEnt.iNumber);
                         return offset;
                     }
                 }
             }
+            ftEnt.inode.toDisk(ftEnt.iNumber); // sync to disk
             return offset;
         }
     }
@@ -138,12 +145,15 @@ public class FileSystem {
             else {
                 // write to file
                 // we have to deallocate the existing data
-
                 while(ftEnt.seekPtr < ftEnt.inode.length && offset < buffer.length){
-                    int currentBlock = ftEnt.seekPtr/Disk.blockSize;
-                    int currentIndex = ftEnt.seekPtr % Disk.blockSize;
+                    int currentBlock = ftEnt.seekPtr/Disk.blockSize; //current block of seek pointer
+                    int currentIndex = ftEnt.seekPtr % Disk.blockSize; // position of seek pointer in current block
                     byte[] data = new byte[Disk.blockSize];
+
+                    //read the current block
                     SysLib.rawread(ftEnt.inode.getBlockID(superblock, currentBlock), data);
+
+                    //override [] data from current index to the end
                     while(ftEnt.seekPtr < ftEnt.inode.length &&
                             currentIndex < Disk.blockSize &&
                             offset < buffer.length){
@@ -152,29 +162,38 @@ public class FileSystem {
                         offset++;
                         ftEnt.seekPtr++;
                     }
+                    // override current block
                     SysLib.rawwrite(ftEnt.inode.getBlockID(superblock, currentBlock), data);
                     if(offset == buffer.length){
+                        ftEnt.inode.toDisk(ftEnt.iNumber);
                         return offset;
                     }
                     if(ftEnt.seekPtr == ftEnt.inode.length){
                         break;
                     }
                 }
+                //reach to the end of file, append this file
                 if(offset < buffer.length){
                     return append(ftEnt, offset, buffer);
                 }
+                ftEnt.inode.toDisk(ftEnt.iNumber);
                 return offset;
             }
         }
     }
+
+    //append a file with given data
     private int append(FileTableEntry ftEnt, int offset, byte[] buffer){
-        int usedBlock = ftEnt.inode.length/Disk.blockSize;
-        int leftLength = ftEnt.inode.length % Disk.blockSize;
+        int usedBlock = ftEnt.inode.length/Disk.blockSize; //the number of block the file already uses
+        int leftLength = ftEnt.inode.length % Disk.blockSize; // the length of the last block that file uses
         ftEnt.seekPtr = ftEnt.inode.length;
-        if(leftLength != 0){
+
+        if(leftLength != 0){ // the last block is not fully filled yet
             int blockNumber = ftEnt.inode.getBlockID(superblock, usedBlock);
             byte[] data = new byte[Disk.blockSize];
-            SysLib.rawread(blockNumber, data);
+            SysLib.rawread(blockNumber, data); // read the existed data in the block to [] data
+
+            //fully filled [] data with data in buffer
             while(leftLength < Disk.blockSize && offset < buffer.length){
                 data[leftLength] = buffer[offset];
                 leftLength++;
@@ -182,12 +201,15 @@ public class FileSystem {
                 ftEnt.seekPtr++;
                 ftEnt.inode.length++;
             }
-            SysLib.rawwrite(blockNumber, data);
+            SysLib.rawwrite(blockNumber, data); // override the last block used by this file with []data
             usedBlock++;
         }
+
         while (offset < buffer.length){
             byte[] data = new byte[Disk.blockSize];
             int index = 0;
+
+            //get data from buffer with each portion = block size
             while(offset < buffer.length && index < data.length){
                 data[index] = buffer[offset];
                 index++;
@@ -195,17 +217,18 @@ public class FileSystem {
                 ftEnt.inode.length++;
                 ftEnt.seekPtr++;
             }
-            int freeBlock = superblock.getFreeBlock();
-            SysLib.rawwrite(freeBlock, data);
-            ftEnt.inode.setBlockID(superblock, usedBlock, (short)freeBlock);
+            int freeBlock = superblock.getFreeBlock(); // get free block
+            SysLib.rawwrite(freeBlock, data); // write the free block with [] data
+            ftEnt.inode.setBlockID(superblock, usedBlock, (short)freeBlock); // set this free block to inode
             usedBlock++;
-
         }
+        ftEnt.inode.toDisk(ftEnt.iNumber); // sync() to disk
         return offset;
     }
 
     private boolean deallocAllBlocks( FileTableEntry ftEnt ) {
         ftEnt.inode.length = 0;
+        ftEnt.inode.toDisk(ftEnt.iNumber);
         ftEnt.seekPtr = 0;
         return true;
     }
@@ -231,7 +254,7 @@ public class FileSystem {
             if (whence == SEEK_SET) {
                 ftEnt.seekPtr = offset;
             }
-            // set seekptr to end of file
+            // set seekptr to end of file then add offset
             if (whence == SEEK_END) {
                 ftEnt.seekPtr = ftEnt.inode.length + offset;
             }

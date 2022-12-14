@@ -520,7 +520,7 @@ class Test5 extends Thread {
   }
 
   private boolean test18( ) {
-    //.............................................."
+    //..............................................
     SysLib.cout( "18: uwb0 read b/w Test5 & Test6...\n" );
     fd = SysLib.open( "uwb0", "r" );
     System.out.println(" fd = " + fd);

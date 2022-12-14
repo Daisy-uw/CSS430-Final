@@ -55,14 +55,17 @@ public class FileSystem {
     
         return true;
     }
-
+    // this method should be implemeted in other way.
+    // it's not correct now
     FileTableEntry open( String filename, String mode ) {
         // filetable entry is allocated
         //check if Directory contains filename
         int inumber = directory.namei(filename);
         if(inumber == -1){
             SysLib.cout("Cannot find the file name " + filename+ "\n");
-            return null;
+            if(mode.equals("r")){
+                return null;
+            }
         }
         Vector<FileTableEntry> entries = filetable.getEntries();
         SysLib.cout("entries size = " + entries.size());

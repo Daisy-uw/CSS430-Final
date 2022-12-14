@@ -7,14 +7,14 @@ public class Directory {
     private char fnames[][];          // file names in characters
 
     public Directory ( int maxInumber ) {       // a default constructor
-	fsizes = new int[maxInumber];           // maxInumber = max files
-	for ( int i = 0; i < maxInumber; i++ )  // all file sizes set to 0
-	    fsizes[i] = 0;
-	fnames = new char[maxInumber][maxChars];
+		fsizes = new int[maxInumber];           // maxInumber = max files
+		for ( int i = 0; i < maxInumber; i++ )  // all file sizes set to 0
+			fsizes[i] = 0;
+		fnames = new char[maxInumber][maxChars];
 
-	String root = "/";                      // entry(inode) 0 is "/"
-	fsizes[0] = root.length( );
-	root.getChars( 0, fsizes[0], fnames[0], 0 ); 
+		String root = "/";                      // entry(inode) 0 is "/"
+		fsizes[0] = root.length( );
+		root.getChars( 0, fsizes[0], fnames[0], 0 );
     }
 	
 	// you implement
@@ -89,6 +89,6 @@ public class Directory {
 		}
 		return -1;
     }
-	// Daisy is here	
+
 
 }

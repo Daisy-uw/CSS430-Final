@@ -15,10 +15,12 @@ public class Superblock {
 		freeList = SysLib.bytes2int(data, 8);
 
 		if(totalBlocks == diskSize && inodeBlocks >0 && freeList >=2){
-			return; // this is a valid super block
+			SysLib.cout("It's a valid superblock");
+			return;
 		}else{
 			totalBlocks = diskSize;
 			format(defaultInodeBlocks);
+			SysLib.cout("This is default super block");
 		}
 	}
 	
@@ -37,12 +39,26 @@ public class Superblock {
 		format( defaultInodeBlocks );
     	}
 	
-	// you implement
+	// you implement: not done yet
 	 void format( int files ) {
 		// initialize the superblock
-		 // need to double check later
 		 inodeBlocks = files;
-		 freeList = 2;
+		 for(short i = 0; i< inodeBlocks; i++){
+			 Inode inode = new Inode();
+			 inode.flag = 0;
+			 inode.toDisk(i);
+		 }
+		 freeList = inodeBlocks * 32 / Disk.blockSize + 2;
+		 for(int i = freeList; i < totalBlocks; i++){
+			 byte[] superBlock = new byte[Disk.blockSize];
+			 for(int j = 0; j < superBlock.length; j++){
+				 superBlock[j] = 0;
+			 }
+			 SysLib.int2bytes(i+1, superBlock, 0);
+			 SysLib.rawwrite(i, superBlock);
+		 }
+		 SysLib.cout("This is in format with files of Super block");
+		 sync();
 	 }
 	
 	// you implement
